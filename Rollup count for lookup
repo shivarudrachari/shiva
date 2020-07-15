@@ -1,0 +1,50 @@
+trigger deletechild on Contact (after insert,after update,after undelete,after delete) {
+    
+    if(trigger.isAfter)
+    {
+        List<Contact> allcontacts=new List<Contact>();
+        Set<Id> accountIdset=new Set<Id>();
+        if(trigger.isdelete)
+        {
+            allcontacts=trigger.old;
+        }        
+        else
+        {
+            allcontacts=trigger.new;
+        }
+        
+        for(Contact c:allcontacts)
+            
+        {
+            if(c.AccountId!=null)
+            {
+                 accountIdset.add(c.accountId);
+            }
+            Contact oldcontact=trigger.oldMap.get(c.id);
+            if(oldcontact.AccountId!=c.accountId)
+            {
+                accountIdset.add(c.accountId);
+            }
+           
+        }
+        List<Account> allaccounts=[select id,name,count__c,(select id,accountid from Contacts) 
+                                   from Account where id in:accountIdset];
+        
+        for(Account a:allaccounts)
+        {
+            List<Contact> relatedcontacts=a.Contacts;
+            if(relatedcontacts!=null)
+            { 
+                a.Count__c=relatedcontacts.size();
+            }
+            else
+            {
+                 a.Count__c=0;
+            }
+           
+        }
+        update allaccounts;
+        
+    }
+    
+}
