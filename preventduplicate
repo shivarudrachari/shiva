@@ -1,0 +1,18 @@
+trigger preventduplicate on Account(before insert,before update)
+{
+Set<String> accname=new Set<String>();
+
+for(Account acc:trigger.new)
+{
+accname.add(acc.name);
+}
+List<Account> acclist=[select id,name from Account where name in:accname];
+
+for(Account a:trigger.new)
+{
+if(acclist.size()>0)
+a.adderror('you cannot add same account with duplicate name);
+}
+
+
+}
